@@ -11,7 +11,7 @@ test('Host uses explicit plugin settings and never forwards admin key', async ()
     return { ok: true, json: async () => ({ code: 0, data: { pages: 1, items: [] } }) };
   };
   try {
-    apply({ effect: fn => { cleanup = fn(); }, webServer: { register: route => { handler = route.handler; return () => { disposed = true; }; } } }, { baseUrl: 'https://configured.example/api/v1', adminApiKey: 'host-only-test-secret', intervalSeconds: 60 });
+    apply({ settings: { configure: () => () => {} }, effect: fn => { cleanup = fn(); }, webServer: { register: route => { if (route.path.endsWith('/api')) handler = route.handler; return () => { disposed = true; }; } } }, { baseUrl: 'https://configured.example/api/v1', adminApiKey: 'host-only-test-secret', intervalSeconds: 60 });
     await new Promise(resolve => setImmediate(resolve));
     assert.equal(requests[0].url.startsWith('https://configured.example/api/v1/'), true);
     assert.equal(requests[0].key, 'host-only-test-secret');

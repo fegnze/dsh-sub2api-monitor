@@ -1,4 +1,4 @@
-window.__ModuleLoader__.load({ id: 'sub2api-monitor', factory: require => {
+window.__ModuleLoader__.load({ id: 'dsh-sub2api-monitor', factory: require => {
   const React = require('react'), h = React.createElement;
   const ID = 'sub2api-monitor';
   const labels = { five_hour: '5 小时', seven_day: '7 天', seven_day_sonnet: 'Sonnet 7 天', seven_day_opus: 'Opus 7 天' };
@@ -31,6 +31,34 @@ window.__ModuleLoader__.load({ id: 'sub2api-monitor', factory: require => {
       })();
       return pending;
     }
+    function Configuration() {
+      const [draft, setDraft] = React.useState(null), [key, setKey] = React.useState(''), [busy, setBusy] = React.useState(false), [message, setMessage] = React.useState('');
+      React.useEffect(() => {
+        const abort = new AbortController();
+        fetch('/sub2api-monitor/settings', { headers: { 'X-Sub2api-Monitor': '1' }, signal: abort.signal }).then(async r => { if (!r.ok) throw new Error(); return r.json(); }).then(setDraft).catch(() => { if (!abort.signal.aborted) setMessage('配置加载失败，请重启 DSH 后重新打开'); });
+        return () => abort.abort();
+      }, []);
+      async function save(e) {
+        e.preventDefault(); setBusy(true); setMessage('');
+        try {
+          const r = await fetch('/sub2api-monitor/settings', { method: 'POST', headers: { 'X-Sub2api-Monitor': '1', 'Content-Type': 'application/json' }, body: JSON.stringify({ ...draft, ...(key ? { adminApiKey: key } : {}) }) });
+          const result = await r.json();
+          if (!r.ok) { setMessage(result.error || '保存失败'); return; }
+          setKey(''); setMessage('已保存。重新打开页面可继续修改；监控将使用新配置。'); setDraft(null);
+        } catch { setMessage('保存结果未确认，请重新打开页面检查，勿重复提交'); }
+        finally { setBusy(false); }
+      }
+      return h('form', { className: 's2m s2m-config', onSubmit: save }, h('h3', null, '连接配置'),
+        draft ? h('fieldset', { disabled: busy, style: { border: 0, padding: 0, display: 'grid', gap: '14px', maxWidth: '580px' } },
+          h('label', null, 'Sub2api API 地址', h('input', { style: { display: 'block', width: '100%', boxSizing: 'border-box' }, type: 'url', required: true, value: draft.baseUrl, placeholder: 'https://example.com/api/v1', onChange: e => setDraft({ ...draft, baseUrl: e.target.value }) })),
+          h('label', null, '管理员 API Key', h('input', { style: { display: 'block', width: '100%', boxSizing: 'border-box' }, type: 'password', autoComplete: 'new-password', value: key, placeholder: draft.hasKey ? '已设置；留空保留原密钥' : '请输入管理员密钥', required: !draft.hasKey, onChange: e => setKey(e.target.value) })),
+          h('label', null, h('input', { type: 'checkbox', checked: draft.allowInsecureHttp, onChange: e => setDraft({ ...draft, allowInsecureHttp: e.target.checked }) }), ' 允许明文 HTTP（密钥可能被截获）'),
+          h('label', null, '刷新间隔（秒） ', h('input', { type: 'number', min: 30, max: 3600, step: 1, required: true, value: draft.intervalSeconds, onChange: e => setDraft({ ...draft, intervalSeconds: Number(e.target.value) }) })),
+          h('small', null, '密钥仅供 Host 使用，不回显。首次保存需填写密钥，旧本机文件不会自动复制到配置中。'),
+          h('button', { type: 'submit', disabled: busy }, busy ? '保存中…' : '保存配置')) : null,
+        h('p', { role: 'status' }, message || (draft ? '' : '正在读取配置…')));
+    }
+    ctx.slots.inject('plugins.bundle.config', () => ctx.slots.register({ name: 'plugins.bundle.config', key: 'dsh-sub2api-monitor' }, Configuration));
     function Card({ a }) {
       return h('article', { className: 's2m-card' },
         h('div', { className: 's2m-head' }, h('span', { className: 's2m-avatar' }, a.platform === 'anthropic' ? 'A' : 'O'), h('h3', null, a.name || `账号 ${a.id}`)),
@@ -48,7 +76,7 @@ window.__ModuleLoader__.load({ id: 'sub2api-monitor', factory: require => {
       const available = a => a.status === 'active' && a.schedulable === true;
       const accounts = [...d.accounts].sort((a, b) => Number(available(b)) - Number(available(a)));
       return h('section', { className: `s2m ${popup ? 's2m-dialog' : 's2m-page'}${footer ? ' s2m-footer-dialog' : ''}`, role: popup ? 'dialog' : undefined, 'aria-label': '账号用量' },
-        h('div', { className: 's2m-toolbar' }, h('h2', null, '账号用量'), h('span', { className: `s2m-fresh ${d.stale ? 'stale' : ''}`, title: `${d.stale ? '数据过期' : '已同步'} · ${time(d.updatedAt)}`, 'aria-label': d.stale ? '数据过期' : '已同步' }), h('button', { disabled: busy || d.refreshing, onClick: async () => { setBusy(true); await load(true); setBusy(false); } }, busy || d.refreshing ? '刷新中…' : '刷新'), popup || modal ? h('button', { onClick: close, 'aria-label': '关闭账号用量' }, '关闭') : null),
+        h('div', { className: 's2m-toolbar' }, h('h2', null, '账号用量'), h('button', { type: 'button', title: '插件信息与配置', 'aria-label': '插件信息与配置', onClick: () => { close?.(); ctx.pluginNavigation.openBundle('dsh-sub2api-monitor'); } }, '配置'), h('span', { className: `s2m-fresh ${d.stale ? 'stale' : ''}`, title: `${d.stale ? '数据过期' : '已同步'} · ${time(d.updatedAt)}`, 'aria-label': d.stale ? '数据过期' : '已同步' }), h('button', { disabled: busy || d.refreshing, onClick: async () => { setBusy(true); await load(true); setBusy(false); } }, busy || d.refreshing ? '刷新中…' : '刷新'), popup || modal ? h('button', { onClick: close, 'aria-label': '关闭账号用量' }, '关闭') : null),
         d.error ? h('p', { role: 'alert', className: 'danger' }, d.error) : null,
         h('div', { className: 's2m-grid' }, ...accounts.map(a => h(Card, { key: a.id, a }))),
         !accounts.length ? h('p', null, d.updatedAt ? '没有匹配的账号' : '等待首次采集；请确认本机配置已填写。') : null);
@@ -75,5 +103,5 @@ window.__ModuleLoader__.load({ id: 'sub2api-monitor', factory: require => {
     });
     ctx.slots.inject('conversation.session.header.utilities', () => ctx.slots.register({ name: 'conversation.session.header.utilities', id: ID, label: '账号用量', order: -30 }, Summary));
   }
-  return { inject: ['slots'], apply };
+  return { inject: ['slots', 'pluginNavigation'], apply };
 } });

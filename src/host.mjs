@@ -4,7 +4,8 @@ import { join } from 'node:path';
 import { createMonitor } from './monitor.mjs';
 import { monitorConfig } from './config.mjs';
 export { Config } from './config.mjs';
-export const inject = ['webServer'];
+import { createSettingsHandler } from './settings.mjs';
+export const inject = ['webServer', 'settings'];
 export const configPath = () => process.env.SUB2API_MONITOR_CONFIG || join(homedir(), '.config', 'dsh-sub2api-monitor', 'config.json');
 export const readConfig = async () => JSON.parse(await readFile(configPath(), 'utf8'));
 export function trusted(req) {
@@ -40,7 +41,9 @@ export function apply(ctx, config = {}) {
       }
       res.end(JSON.stringify(monitor.snapshot()));
     } });
+    const disposePolicy = ctx.settings.configure({ auto: false });
+    const disposeSettings = ctx.webServer.register({ kind: 'exact', path: '/sub2api-monitor/settings', handler: createSettingsHandler(ctx, trusted) });
     void tick();
-    return () => { stopped = true; clearTimeout(timer); monitor.dispose(); dispose(); };
+    return () => { stopped = true; clearTimeout(timer); monitor.dispose(); dispose(); disposeSettings(); disposePolicy(); };
   });
 }
