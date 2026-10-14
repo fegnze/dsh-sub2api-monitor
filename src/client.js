@@ -44,7 +44,8 @@ window.__ModuleLoader__.load({ id: 'myspace-sub2api-monitor', factory: require =
     }
     function Panel({ popup = false, close }) {
       const d = useData(), [busy, setBusy] = React.useState(false);
-      const accounts = d.accounts;
+      const available = a => a.status === 'active' && a.schedulable === true;
+      const accounts = [...d.accounts].sort((a, b) => Number(available(b)) - Number(available(a)));
       return h('section', { className: `s2m ${popup ? 's2m-dialog' : 's2m-page'}`, role: popup ? 'dialog' : undefined, 'aria-label': '账号用量' },
         h('div', { className: 's2m-toolbar' }, h('h2', null, '账号用量'), h('span', { className: `s2m-fresh ${d.stale ? 'stale' : ''}`, title: `${d.stale ? '数据过期' : '已同步'} · ${time(d.updatedAt)}`, 'aria-label': d.stale ? '数据过期' : '已同步' }), h('button', { disabled: busy || d.refreshing, onClick: async () => { setBusy(true); await load(true); setBusy(false); } }, busy || d.refreshing ? '刷新中…' : '刷新'), popup ? h('button', { onClick: close, 'aria-label': '关闭账号用量' }, '关闭') : null),
         d.error ? h('p', { role: 'alert', className: 'danger' }, d.error) : null,
