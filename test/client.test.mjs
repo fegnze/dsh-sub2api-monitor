@@ -21,6 +21,10 @@ test('client registers additive slots and renders without secret access', async 
   assert.equal(grid.children.map(child => child.props.a.id).join(','), '2,4,1,3');
   assert.equal(accounts.map(a => a.id).join(','), '1,2,3,4');
   assert.equal(entries[2].component().tag, 'div');
+  assert.equal(entries[2].options.order, -30);
+  assert.equal(entries[1].component({ popup: true }).props.className, 's2m s2m-dialog');
+  assert.ok(style.textContent.includes('width:min(620px,calc(100vw - 32px))'));
+  assert.ok(style.textContent.includes('.s2m-dialog .s2m-card{padding:13px'));
   assert.equal(style.dataset.plugin, 'myspace-sub2api-monitor');
   effects.forEach(fn => fn()); assert.equal(removed.length, 1);
   assert.equal(source.includes('apiKey'), false);
