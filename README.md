@@ -13,26 +13,39 @@ Host 通过管理 API 读取分页账号列表、每账号 `/usage` 和 `/today-
 - 80%/95% 高亮提醒；会话摘要计数需关注账号。暂不发送系统通知。
 - 未知字段保持未知；局部失败单独标记，列表失败保留旧数据并显示过期。上游快照可能比采集时间旧，显示源时间（如果接口提供）。
 
-## 本机配置
+## 安装与插件配置
 
-默认读取 `~/.config/dsh-sub2api-monitor/config.json`，也可由 Host 环境变量 `SUB2API_MONITOR_CONFIG` 指定。目录权限 700，文件权限 600。配置不放入仓库，密钥绝不填写进 bundle patch。
+在 DSH「插件」中安装 npm 包 `myspace-sub2api-monitor`，进入插件详情中的配置表单，填写下列字段并保存。配置由 DSH profile 管理，不需要修改插件源码。
+
+- `baseUrl`：站点 API 地址，包含 `/api/v1`。
+- `adminApiKey`：管理员 API 密钥，使用 DSH secret 类型输入框。
+- `allowInsecureHttp`：默认关闭；仅在明确接受明文风险时开启。
+- `intervalSeconds`：30–3600 秒，默认 60 秒。
+
+本插件仅 Host 使用密钥，不把密钥注入 Client 模块或用量接口。secret 输入框负责遮挡，不代表磁盘加密；应保护 DSH profile，勿将含凭证的本机配置提交 Git。
 
 ```json
 {
   "baseUrl": "https://your-sub2api.example/api/v1",
-  "apiKey": "替换为管理员密钥",
+  "adminApiKey": "替换为管理员密钥",
   "allowInsecureHttp": false,
   "intervalSeconds": 60
 }
 ```
 
-仅在明确接受明文传输风险后将 `allowInsecureHttp` 设为 `true`。轮换密钥时修改本机文件，下次采集自动读取，无需重装。拒绝跟随上游重定向，防止密钥随重定向泄露。前端仅收到白名单展示字段，不包含 credentials、extra、notes 或原始错误。
+仅在明确接受明文传输风险后将 `allowInsecureHttp` 设为 `true`。轮换密钥时在插件配置中更新并保存，无需重装。
+
+旧版本迁移兼容：仅当插件配置的地址和密钥都为空时，读取 `~/.config/dsh-sub2api-monitor/config.json`（旧键名 `apiKey`），或 `SUB2API_MONITOR_CONFIG` 指定的文件。目录权限应为 700、文件为 600。新安装没有这个文件也能正常加载，待填写插件配置；不包含任何默认站点或真实密钥。配置任意连接字段后不再回退旧文件。
+
+拒绝跟随上游重定向，防止密钥随重定向泄露。前端仅收到白名单展示字段，不包含 credentials、extra、notes 或原始错误。
 
 本机 `/sub2api-monitor/api` 只接受 loopback、合法本机 Host、同源 Origin（若存在）、自定义请求头 `X-Sub2api-Monitor: 1`，不启用 CORS。当前不支持远程浏览器/跨机连接。
 
 ## 安装与验证
 
-无依赖、无生成步骤，Client 为原生 ModuleLoader 包装的 JavaScript，直接随包分发。通过 DSH 插件管理安装本目录的 link bundle，仅安装到 desktop profile。刷新现有 DSH 页面后检查左侧入口与会话摘要；不需要启动替代 Web 服务。
+仅依赖官方 `@deepseek-ai/schemastery` 配置 schema，无生成步骤。Client 为原生 ModuleLoader 包装的 JavaScript，直接随包分发。通过 DSH 插件管理安装 npm 包或开发目录的 link bundle。升级已安装模块后重启 DSH，检查插件详情中的中英文标题、图标、配置表单与会话摘要；不需要启动替代 Web 服务。
+
+这是社区插件，不是 DeepSeek 官方出品。包元数据、图标导出、双语 locale、原生 Config 和生命周期遵循 DSH 插件规范；原创透明 SVG 图标采用 36×36 仪表盘主题。源码与问题反馈：https://github.com/fegnze/myspace-sub2api-monitor 。
 
 ```sh
 node --test test/*.test.mjs
