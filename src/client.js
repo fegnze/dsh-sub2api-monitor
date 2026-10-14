@@ -53,34 +53,27 @@ window.__ModuleLoader__.load({ id: 'myspace-sub2api-monitor', factory: require =
         h('div', { className: 's2m-grid' }, ...accounts.map(a => h(Card, { key: a.id, a }))),
         !accounts.length ? h('p', null, d.updatedAt ? '没有匹配的账号' : '等待首次采集；请确认本机配置已填写。') : null);
     }
-    function Summary({ footer = false } = {}) {
+    function Summary() {
+      const root = React.useRef(null);
       const d = useData(), [open, setOpen] = React.useState(false);
       const alerts = d.accounts.filter(a => a.usageError || a.status !== 'active' || !a.schedulable || a.windows?.some(w => w.utilization >= 80)).length;
-      React.useEffect(() => { if (!open) return; const key = e => { if (e.key === 'Escape') setOpen(false); }; document.addEventListener('keydown', key); return () => document.removeEventListener('keydown', key); }, [open]);
-      const label = `用量 ${d.accounts.length} · ${d.stale ? '离线/过期' : alerts ? `${alerts} 待关注` : '正常'}`;
-      return h('div', { className: 's2m' }, h('button', { className: `s2m-mini ${footer ? 's2m-footer-button' : ''} ${d.stale || alerts ? 'warn' : ''}`, title: label, 'aria-label': footer ? `账号${label}` : label, onClick: () => setOpen(!open), 'aria-expanded': open }, footer ? h('svg', { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.8, 'aria-hidden': true }, h('path', { d: 'M4 19V9m8 10V4m8 15v-7M2 21h20' })) : label), open ? h(Panel, { popup: true, footer, close: () => setOpen(false) }) : null);
-    }
-    let centerOpen = false;
-    const centerListeners = new Set();
-    const setCenter = value => { centerOpen = value; centerListeners.forEach(fn => fn()); };
-    function CenterModal() {
-      const open = React.useSyncExternalStore(fn => { centerListeners.add(fn); return () => centerListeners.delete(fn); }, () => centerOpen);
-      const ref = React.useRef(null);
       React.useEffect(() => {
-        if (open && !ref.current.open) ref.current.showModal();
-        if (!open && ref.current.open) ref.current.close();
+        if (!open) return;
+        const key = e => { if (e.key === 'Escape') setOpen(false); };
+        const outside = e => { if (root.current && !root.current.contains(e.target)) setOpen(false); };
+        document.addEventListener('keydown', key);
+        document.addEventListener('pointerdown', outside, true);
+        return () => { document.removeEventListener('keydown', key); document.removeEventListener('pointerdown', outside, true); };
       }, [open]);
-      return h('dialog', { ref, className: 's2m-center', 'aria-label': '账号用量', onCancel: () => setCenter(false), onClose: () => setCenter(false), onClick: e => { if (e.target === e.currentTarget) { const r = e.currentTarget.getBoundingClientRect(); if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) setCenter(false); } } }, open ? h(Panel, { modal: true, close: () => setCenter(false) }) : null);
+      const label = `用量 ${d.accounts.length} · ${d.stale ? '离线/过期' : alerts ? `${alerts} 待关注` : '正常'}`;
+      return h('div', { className: 's2m', ref: root }, h('button', { className: `s2m-mini ${d.stale || alerts ? 'warn' : ''}`, title: label, 'aria-label': label, onClick: () => setOpen(!open), 'aria-expanded': open }, label), open ? h(Panel, { popup: true, close: () => setOpen(false) }) : null);
     }
     ctx.effect(() => {
-      const style = document.createElement('style'); style.dataset.plugin = 'myspace-sub2api-monitor'; style.textContent = css + polish + '.s2m-meta{flex-wrap:wrap}.s2m-plan{padding:3px 7px;border-radius:5px;font-size:11px;font-weight:600;color:var(--dsw-alias-brand-primary);background:var(--dsw-alias-bg-layer-2);white-space:nowrap}' + popupCss + '.s2m.s2m-footer-dialog{left:16px;right:auto;top:auto;bottom:68px;max-height:min(680px,calc(100dvh - 90px))}.s2m .s2m-footer-button{width:32px;height:32px;display:grid;place-items:center;padding:0!important;background:transparent;border-color:transparent;border-radius:8px}.s2m .s2m-footer-button:hover{background:var(--dsw-alias-interactive-bg-hover)}' + '.s2m-footer-nav{display:flex;align-items:center;gap:10px;min-height:36px;padding:8px 10px;border:0;border-radius:8px;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:13px;cursor:pointer;white-space:nowrap}.s2m-footer-nav svg{flex:none}.s2m-footer-nav:hover{background:var(--dsw-specific-sidebar-nav-item-hover);color:var(--dsw-alias-label-primary)}.s2m-footer-nav:focus-visible{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:2px}' + '.s2m-footer-nav{width:100%;min-height:42px;padding:10px 12px;gap:12px;border-radius:12px;font-size:14px;text-align:left}.s2m-center{pointer-events:auto;position:fixed;inset:0;margin:auto;width:min(1080px,calc(100vw - 64px));height:min(820px,calc(100dvh - 96px));max-width:none;max-height:none;padding:0;border:1px solid var(--dsw-alias-border-l2);border-radius:18px;background:var(--dsw-alias-bg-overlay);color:var(--dsw-alias-label-primary);box-shadow:var(--dsw-shadow-lv3)}.s2m-center::backdrop{background:rgba(0,0,0,.4);backdrop-filter:blur(3px)}.s2m-center .s2m-page{padding:28px;height:100%;overflow:auto}.s2m-center .s2m-toolbar{position:sticky;top:-28px;z-index:1;background:var(--dsw-alias-bg-overlay);padding:12px 0}.s2m-center .s2m-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:18px}@media(max-width:640px){.s2m-center{width:calc(100vw - 24px);height:calc(100dvh - 40px)}.s2m-center .s2m-page{padding:16px}}'; document.head.appendChild(style);
+      const style = document.createElement('style'); style.dataset.plugin = 'myspace-sub2api-monitor'; style.textContent = css + polish + '.s2m-meta{flex-wrap:wrap}.s2m-plan{padding:3px 7px;border-radius:5px;font-size:11px;font-weight:600;color:var(--dsw-alias-brand-primary);background:var(--dsw-alias-bg-layer-2);white-space:nowrap}' + popupCss + '.s2m.s2m-dialog{width:min(700px,calc(100vw - 32px));max-height:min(760px,calc(100dvh - 90px));padding:18px}.s2m-dialog .s2m-card{padding:16px}.s2m-dialog .s2m-card h3{font-size:14px}.s2m-dialog .s2m-meta,.s2m-dialog .s2m-window small{font-size:11px}.s2m-dialog .s2m-row{font-size:12px}.s2m-dialog .s2m-row strong{font-size:20px}.s2m-dialog .s2m-stats{font-size:10px}.s2m-dialog .s2m-stats b{font-size:15px}'; document.head.appendChild(style);
       void load(); timer = setInterval(() => { void load(); }, 10000);
       return () => { stopped = true; clearInterval(timer); controller?.abort(); style.remove(); listeners.clear(); };
     });
-    ctx.slots.inject('sidebar.footer.action', () => ctx.slots.register({ name: 'sidebar.footer.action', id: ID, label: '账号用量', order: 15 }, ({ wide }) => h('button', { type: 'button', className: 's2m-footer-nav', title: '账号用量', 'aria-label': '账号用量', onClick: () => setCenter(true) }, h('svg', { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.8, 'aria-hidden': true }, h('path', { d: 'M4 19V9m8 10V4m8 15v-7M2 21h20' })), wide ? h('span', null, '账号用量') : null)));
-    ctx.slots.inject('shell.overlay', () => ctx.slots.register({ name: 'shell.overlay', id: `${ID}-center`, order: 40 }, CenterModal));
-    ctx.slots.inject('main', () => ctx.slots.register({ name: 'main', key: ID }, Panel));
     ctx.slots.inject('conversation.session.header.utilities', () => ctx.slots.register({ name: 'conversation.session.header.utilities', id: ID, label: '账号用量', order: -30 }, Summary));
   }
-  return { inject: ['slots', 'layout'], apply };
+  return { inject: ['slots'], apply };
 } });
