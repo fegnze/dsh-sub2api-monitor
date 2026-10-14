@@ -48,7 +48,7 @@ export function createMonitor({ config, fetcher = fetch, now = Date.now }) {
         while (index < accounts.length) {
           const a = accounts[index++];
           const [usage, stats] = await Promise.allSettled([
-            request(c, `/admin/accounts/${a.id}/usage`),
+            request(c, `/admin/accounts/${a.id}/usage${a.platform === 'anthropic' ? '?source=passive' : ''}`),
             request(c, `/admin/accounts/${a.id}/today-stats?timezone=Asia%2FShanghai`)
           ]);
           a.windows = usage.status === 'fulfilled' ? usageView(usage.value) : [];

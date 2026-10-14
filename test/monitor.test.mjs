@@ -46,6 +46,14 @@ test('failure retains previous successful data and marks stale', async () => {
   fail = true; await m.refresh(); assert.equal(m.snapshot().accounts.length, 1); assert.equal(m.snapshot().stale, true);
   assert.equal(JSON.stringify(m.snapshot()).includes('secret'), false); m.dispose();
 });
+test('Anthropic uses passive source to retain weekly quota', async () => {
+  const m = createMonitor({ config, fetcher: async url => {
+    if (url.includes('/accounts?')) return reply({ pages: 1, items: [{ id: 1, platform: 'anthropic' }] });
+    if (url.includes('/usage')) { assert.ok(url.endsWith('?source=passive')); return reply({ five_hour: { utilization: 4 }, seven_day: { utilization: 70 } }); }
+    return reply({});
+  }});
+  await m.refresh(); assert.equal(m.snapshot().accounts[0].windows[1].utilization, 70); m.dispose();
+});
 test('disposal aborts in-flight requests', async () => {
   let signal;
   const m = createMonitor({ config, fetcher: async (_, options) => { signal = options.signal; return new Promise((_, reject) => signal.addEventListener('abort', () => reject(new Error('aborted')))); } });
