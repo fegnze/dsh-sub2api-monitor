@@ -5,13 +5,13 @@ import vm from 'node:vm';
 test('client registers additive slots and renders without secret access', async () => {
   const source = await readFile(new URL('../src/client.js', import.meta.url), 'utf8');
   const entries = [], effects = [], removed = [];
-  let plugin;
+  let plugin, selectedPanel;
   const React = { createElement: (tag, props, ...children) => ({ tag, props, children }), useState: v => [v, () => {}], useSyncExternalStore: (_, get) => get(), useEffect: () => {} };
   const accounts = [{ id: 1, status: 'inactive', schedulable: true }, { id: 2, status: 'active', schedulable: true }, { id: 3, status: 'active', schedulable: false }, { id: 4, status: 'active', schedulable: true }];
   const style = { dataset: {}, remove: () => removed.push(true) };
   const sandbox = { window: { __ModuleLoader__: { load: d => { plugin = d.factory(() => React); } } }, document: { createElement: () => style, head: { appendChild() {} } }, AbortController, AbortSignal, setInterval: () => 1, clearInterval() {}, fetch: async () => ({ ok: true, json: async () => ({ accounts, stale: false }) }) };
   vm.runInNewContext(source, sandbox);
-  plugin.apply({ effect: fn => effects.push(fn()), slots: { inject: (_, fn) => fn(), register: (options, component) => { entries.push({ options, component }); return () => {}; } } });
+  plugin.apply({ layout: { selectPanel: id => { selectedPanel = id; } }, effect: fn => effects.push(fn()), slots: { inject: (_, fn) => fn(), register: (options, component) => { entries.push({ options, component }); return () => {}; } } });
   assert.equal(entries.length, 3);
   assert.deepEqual(entries.map(e => e.options.name), ['sidebar.footer.action', 'main', 'conversation.session.header.utilities']);
   await new Promise(resolve => setImmediate(resolve));
@@ -22,7 +22,10 @@ test('client registers additive slots and renders without secret access', async 
   assert.equal(accounts.map(a => a.id).join(','), '1,2,3,4');
   assert.equal(entries[2].component().tag, 'div');
   assert.equal(entries[2].options.order, -30);
-  assert.equal(entries[0].component().props.footer, true);
+  const nav = entries[0].component({ wide: true });
+  assert.equal(nav.children[1].children[0], '账号用量');
+  nav.props.onClick(); assert.equal(selectedPanel, 'sub2api-monitor');
+  assert.equal(entries[0].component({ wide: false }).children[1], null);
   assert.equal(entries[1].component({ popup: true, footer: true }).props.className, 's2m s2m-dialog s2m-footer-dialog');
   assert.equal(entries[1].component({ popup: true }).props.className, 's2m s2m-dialog');
   assert.ok(style.textContent.includes('width:min(620px,calc(100vw - 32px))'));
