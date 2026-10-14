@@ -39,7 +39,7 @@ export function createMonitor({ config, fetcher = fetch, now = Date.now }) {
         for (const a of d.items) {
           if (!Number.isSafeInteger(a.id) || a.id <= 0) throw new Error('账号 ID 无效');
           // Never forward credentials, extra, notes or raw upstream errors.
-          accounts.push({ id: a.id, name: text(a.name), platform: text(a.platform), type: text(a.type), status: text(a.status), schedulable: a.schedulable === true, rateLimitResetAt: text(a.rate_limit_reset_at) });
+          accounts.push({ id: a.id, name: text(a.name), platform: text(a.platform), type: text(a.type), status: text(a.status), subscriptionType: text(a.credentials?.plan_type), schedulable: a.schedulable === true, rateLimitResetAt: text(a.rate_limit_reset_at) });
         }
         if (page >= d.pages) break;
       }

@@ -27,7 +27,7 @@ test('pagination, whitelist, single flight and partial failure', async () => {
   const m = createMonitor({ config, fetcher: async (url, options) => {
     calls++;
     assert.equal(options.redirect, 'error'); assert.equal(options.headers['x-api-key'], 'secret');
-    if (url.includes('/accounts?')) return reply({ pages: 2, items: [{ id: url.includes('page=1&') ? 1 : 2, name: 'account', credentials: { token: 'SENSITIVE' }, extra: { key: 'SENSITIVE' }, schedulable: true }] });
+    if (url.includes('/accounts?')) return reply({ pages: 2, items: [{ id: url.includes('page=1&') ? 1 : 2, name: 'account', credentials: { token: 'SENSITIVE', plan_type: 'promax' }, extra: { key: 'SENSITIVE' }, schedulable: true }] });
     if (url.includes('/2/usage')) throw new Error('SENSITIVE');
     if (url.includes('/usage')) return reply({ five_hour: { utilization: 30 }, secret: 'SENSITIVE' });
     return reply({ requests: 2, tokens: 10, cost: 0.1, secret: 'SENSITIVE' });
@@ -35,6 +35,8 @@ test('pagination, whitelist, single flight and partial failure', async () => {
   const a = m.refresh(), b = m.refresh(); assert.equal(a, b); await a;
   assert.equal(calls, 6); assert.equal(m.snapshot().accounts.length, 2);
   assert.equal(m.snapshot().accounts[1].usageError, true);
+  assert.equal(m.snapshot().accounts[0].subscriptionType, 'promax');
+  assert.equal(m.snapshot().accounts[0].credentials, undefined);
   assert.equal(JSON.stringify(m.snapshot()).includes('SENSITIVE'), false);
   m.dispose();
 });
