@@ -1,0 +1,21 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import vm from 'node:vm';
+test('client registers additive slots and renders without secret access', async () => {
+  const source = await readFile(new URL('../src/client.js', import.meta.url), 'utf8');
+  const entries = [], effects = [], removed = [];
+  let plugin;
+  const React = { createElement: (tag, props, ...children) => ({ tag, props, children }), useState: v => [v, () => {}], useSyncExternalStore: (_, get) => get(), useEffect: () => {} };
+  const style = { dataset: {}, remove: () => removed.push(true) };
+  const sandbox = { window: { __ModuleLoader__: { load: d => { plugin = d.factory(() => React); } } }, document: { createElement: () => style, head: { appendChild() {} } }, AbortController, AbortSignal, setInterval: () => 1, clearInterval() {}, fetch: async () => ({ ok: true, json: async () => ({ accounts: [], stale: false }) }) };
+  vm.runInNewContext(source, sandbox);
+  plugin.apply({ effect: fn => effects.push(fn()), slots: { inject: (_, fn) => fn(), register: (options, component) => { entries.push({ options, component }); return () => {}; } } });
+  assert.equal(entries.length, 3);
+  assert.deepEqual(entries.map(e => e.options.name), ['sidebar.panellist', 'main', 'conversation.session.header.utilities']);
+  assert.equal(entries[1].component({}).tag, 'section');
+  assert.equal(entries[2].component().tag, 'div');
+  assert.equal(style.dataset.plugin, 'myspace-sub2api-monitor');
+  effects.forEach(fn => fn()); assert.equal(removed.length, 1);
+  assert.equal(source.includes('apiKey'), false);
+});

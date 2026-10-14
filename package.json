@@ -1,0 +1,11 @@
+{
+  "name": "myspace-sub2api-monitor",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "账号用量：sub2api 额度窗口、重置时间与今日统计",
+  "exports": { ".": "./src/host.mjs", "./client": "./src/client.js", "./package.json": "./package.json" },
+  "engines": { "node": ">=22", "dsh": "0.2.0-rc.2" },
+  "dsh": { "bundle": { "patch": "./cordis.patch.yml" }, "client": { "platform": "web", "inject": ["@deepseek-ai/dsh-client-ui-slots", "@deepseek-ai/dsh-client-ui-sidebar", "@deepseek-ai/dsh-client-ui-conversation"] } },
+  "scripts": { "test": "node --test test/*.test.mjs", "probe": "node scripts/probe.mjs" }
+}
