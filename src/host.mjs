@@ -1,13 +1,8 @@
-import { readFile } from 'node:fs/promises';
-import { homedir } from 'node:os';
-import { join } from 'node:path';
 import { createMonitor } from './monitor.mjs';
 import { monitorConfig } from './config.mjs';
 export { Config } from './config.mjs';
 import { createSettingsHandler } from './settings.mjs';
 export const inject = ['webServer', 'settings'];
-export const configPath = () => process.env.SUB2API_MONITOR_CONFIG || join(homedir(), '.config', 'dsh-sub2api-monitor', 'config.json');
-export const readConfig = async () => JSON.parse(await readFile(configPath(), 'utf8'));
 export function trusted(req) {
   const remote = req.socket?.remoteAddress;
   if (!['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(remote)) return false;
@@ -21,8 +16,7 @@ export function trusted(req) {
 }
 export function apply(ctx, config = {}) {
   ctx.effect(() => {
-    // Legacy file is a migration fallback only; explicit plugin configuration wins.
-    const monitor = createMonitor({ config: async () => { const current = monitorConfig(config); return current.baseUrl || current.apiKey ? current : readConfig().catch(() => current); } });
+    const monitor = createMonitor({ config: () => monitorConfig(config) });
     let timer, stopped = false, lastManual = 0;
     const tick = async () => {
       await monitor.refresh();

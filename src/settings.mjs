@@ -21,7 +21,7 @@ export function createSettingsHandler(ctx, trusted) {
       validateConfig({ ...patch, apiKey: input.adminApiKey || 'unchanged' });
       if (input.adminApiKey !== undefined && typeof input.adminApiKey !== 'string') throw new Error();
       if (input.adminApiKey?.trim()) patch.adminApiKey = input.adminApiKey.trim();
-      if (!patch.adminApiKey && !d.secrets?.some(s => s.path.join('.') === 'adminApiKey' && s.set)) return send(400, { error: '首次配置请填写管理员密钥；旧文件密钥不会自动复制' });
+      if (!patch.adminApiKey && !d.secrets?.some(s => s.path.join('.') === 'adminApiKey' && s.set)) return send(400, { error: '请填写管理员密钥' });
       await ctx.settings.update(d.ns, patch, input.revision);
       send(200, { saved: true });
     } catch { send(400, { error: '保存失败：检查地址、HTTP 开关、密钥及刷新间隔；如配置已更新，请重新打开页面' }); }

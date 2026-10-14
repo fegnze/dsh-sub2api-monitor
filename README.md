@@ -17,7 +17,7 @@ Host 通过管理 API 读取分页账号列表、每账号 `/usage` 和 `/today-
 
 在 DSH「插件」中安装 npm 包 `dsh-sub2api-monitor`，进入插件详情中的配置表单，填写下列字段并保存。配置直接嵌在本插件信息页面，不注册宿主设置页面；也可从用量浮层顶部的「配置」按钮跳转。配置由 DSH settings 服务写入 profile，不需要修改插件源码。读取接口仅返回非敏感字段和密钥是否已设置；密钥输入留空保留原值，首次保存需输入密钥。保存使用 revision 检测并发冲突，不自动覆盖其他窗口的修改。
 
-旧包 `sub2api-monitor` 和更早的 `myspace-sub2api-monitor` 应停用后再启用新包，避免重复采集。保持原 row id 和本机配置回退路径以兼容迁移。
+旧包 `sub2api-monitor` 和更早的 `myspace-sub2api-monitor` 应停用后再启用新包，避免重复采集。参数迁入插件配置后卸载旧包。保留原 row id，连接配置仅由 DSH profile 管理。
 
 - `baseUrl`：站点 API 地址，包含 `/api/v1`。
 - `adminApiKey`：管理员 API 密钥，使用 DSH secret 类型输入框。
@@ -37,7 +37,7 @@ Host 通过管理 API 读取分页账号列表、每账号 `/usage` 和 `/today-
 
 仅在明确接受明文传输风险后将 `allowInsecureHttp` 设为 `true`。轮换密钥时在插件配置中更新并保存，无需重装。
 
-旧版本迁移兼容：仅当插件配置的地址和密钥都为空时，读取 `~/.config/dsh-sub2api-monitor/config.json`（旧键名 `apiKey`），或 `SUB2API_MONITOR_CONFIG` 指定的文件。目录权限应为 700、文件为 600。新安装没有这个文件也能正常加载，待填写插件配置；不包含任何默认站点或真实密钥。配置任意连接字段后不再回退旧文件。
+不再读取旧独立 JSON 配置或 `SUB2API_MONITOR_CONFIG` 环境变量。迁移后删除旧配置文件，只保留插件配置一处权威。
 
 拒绝跟随上游重定向，防止密钥随重定向泄露。前端仅收到白名单展示字段，不包含 credentials、extra、notes 或原始错误。
 
@@ -54,4 +54,4 @@ node --test test/*.test.mjs
 node scripts/probe.mjs
 ```
 
-probe 使用本机配置，只输出账号数量、平台及成功状态，不输出账号名称、原始响应或密钥。测试涵盖脱敏白名单、分页、部分失败、单飞刷新、缓存过期、HTTP 明确授权、同源校验和卸载取消。
+probe 调用当前 DSH 监控接口，只输出账号数量、平台及成功状态，不输出账号名称、原始响应或密钥。测试涵盖脱敏白名单、分页、部分失败、单飞刷新、缓存过期、HTTP 明确授权、同源校验和卸载取消。

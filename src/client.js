@@ -54,7 +54,6 @@ window.__ModuleLoader__.load({ id: 'dsh-sub2api-monitor', factory: require => {
           h('label', null, '管理员 API Key', h('input', { style: { display: 'block', width: '100%', boxSizing: 'border-box' }, type: 'password', autoComplete: 'new-password', value: key, placeholder: draft.hasKey ? '已设置；留空保留原密钥' : '请输入管理员密钥', required: !draft.hasKey, onChange: e => setKey(e.target.value) })),
           h('label', null, h('input', { type: 'checkbox', checked: draft.allowInsecureHttp, onChange: e => setDraft({ ...draft, allowInsecureHttp: e.target.checked }) }), ' 允许明文 HTTP（密钥可能被截获）'),
           h('label', null, '刷新间隔（秒） ', h('input', { type: 'number', min: 30, max: 3600, step: 1, required: true, value: draft.intervalSeconds, onChange: e => setDraft({ ...draft, intervalSeconds: Number(e.target.value) }) })),
-          h('small', null, '密钥仅供 Host 使用，不回显。首次保存需填写密钥，旧本机文件不会自动复制到配置中。'),
           h('button', { type: 'submit', disabled: busy }, busy ? '保存中…' : '保存配置')) : null,
         h('p', { role: 'status' }, message || (draft ? '' : '正在读取配置…')));
     }
