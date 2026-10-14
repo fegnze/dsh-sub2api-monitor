@@ -4,7 +4,8 @@ import { Config, monitorConfig } from '../src/config.mjs';
 
 test('native Config exposes a secret field and safe empty defaults', () => {
   assert.equal(Config.dict.adminApiKey.meta.role, 'secret');
-  const c = Config({});
+  assert.equal(Config.meta.volatile, true);
+  const c = Config({}).get();
   assert.equal(c.baseUrl, '');
   assert.equal(c.adminApiKey, '');
   assert.equal(c.allowInsecureHttp, false);

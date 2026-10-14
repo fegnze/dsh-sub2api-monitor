@@ -22,7 +22,7 @@ export function trusted(req) {
 export function apply(ctx, config = {}) {
   ctx.effect(() => {
     // Legacy file is a migration fallback only; explicit plugin configuration wins.
-    const monitor = createMonitor({ config: async () => config.baseUrl || config.adminApiKey ? monitorConfig(config) : readConfig().catch(() => monitorConfig(config)) });
+    const monitor = createMonitor({ config: async () => { const current = monitorConfig(config); return current.baseUrl || current.apiKey ? current : readConfig().catch(() => current); } });
     let timer, stopped = false, lastManual = 0;
     const tick = async () => {
       await monitor.refresh();
