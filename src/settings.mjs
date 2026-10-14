@@ -1,7 +1,7 @@
 import { validateConfig } from './monitor.mjs';
 
 export function createSettingsHandler(ctx, trusted) {
-  const descriptor = () => ctx.settings.describe({ redactSecrets: true }).find(d => d.ns === 'sub2api-monitor' || d.ns === 'include:sub2api-monitor');
+  const descriptor = () => ctx.settings.describe({ redactSecrets: true }).find(d => d.ns === 'dsh-sub2api-monitor' || d.ns === 'include:dsh-sub2api-monitor');
   return async (req, res) => {
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
     res.setHeader('Cache-Control', 'no-store');

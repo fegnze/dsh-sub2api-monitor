@@ -5,7 +5,7 @@ import { createSettingsHandler } from '../src/settings.mjs';
 import { trusted } from '../src/host.mjs';
 function harness(hasKey = true) {
   const writes = [];
-  const handler = createSettingsHandler({ settings: { describe: () => [{ ns: 'sub2api-monitor', revision: 4, value: { baseUrl: 'https://example.test/api/v1', adminApiKey: 'NEVER-EXPOSE', intervalSeconds: 60 }, secrets: [{ path: ['adminApiKey'], set: hasKey }] }], update: async (...args) => writes.push(args) } }, trusted);
+  const handler = createSettingsHandler({ settings: { describe: () => [{ ns: 'dsh-sub2api-monitor', revision: 4, value: { baseUrl: 'https://example.test/api/v1', adminApiKey: 'NEVER-EXPOSE', intervalSeconds: 60 }, secrets: [{ path: ['adminApiKey'], set: hasKey }] }], update: async (...args) => writes.push(args) } }, trusted);
   return { writes, call: async (method, input, headers = {}) => {
     const req = Readable.from(input === undefined ? [] : [JSON.stringify(input)]); req.method = method; req.socket = { remoteAddress: '127.0.0.1' }; req.headers = { host: 'localhost:19387', 'x-sub2api-monitor': '1', ...headers };
     let body; const res = { statusCode: 200, setHeader() {}, end: s => { body = JSON.parse(s); } }; await handler(req, res); return { status: res.statusCode, body };

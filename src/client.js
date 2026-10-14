@@ -1,6 +1,6 @@
 window.__ModuleLoader__.load({ id: 'dsh-sub2api-monitor', factory: require => {
   const React = require('react'), h = React.createElement;
-  const ID = 'sub2api-monitor';
+  const ID = 'dsh-sub2api-monitor';
   const labels = { five_hour: '5 小时', seven_day: '7 天', seven_day_sonnet: 'Sonnet 7 天', seven_day_opus: 'Opus 7 天' };
   const time = v => v && Number.isFinite(new Date(v).getTime()) ? new Date(v).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }) : '未知';
   const num = v => v == null ? '未知' : v.toLocaleString('zh-CN', { maximumFractionDigits: 2 });

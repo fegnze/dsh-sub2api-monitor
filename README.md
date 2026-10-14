@@ -17,7 +17,7 @@ Host 通过管理 API 读取分页账号列表、每账号 `/usage` 和 `/today-
 
 在 DSH「插件」中安装 npm 包 `dsh-sub2api-monitor`，进入插件详情中的配置表单，填写下列字段并保存。配置直接嵌在本插件信息页面，不注册宿主设置页面；也可从用量浮层顶部的「配置」按钮跳转。配置由 DSH settings 服务写入 profile，不需要修改插件源码。读取接口仅返回非敏感字段和密钥是否已设置；密钥输入留空保留原值，首次保存需输入密钥。保存使用 revision 检测并发冲突，不自动覆盖其他窗口的修改。
 
-旧包 `sub2api-monitor` 和更早的 `myspace-sub2api-monitor` 应停用后再启用新包，避免重复采集。参数迁入插件配置后卸载旧包。保留原 row id，连接配置仅由 DSH profile 管理。
+旧包 `sub2api-monitor` 和更早的 `myspace-sub2api-monitor` 应停用后再启用新包，避免重复采集。参数迁入插件配置后卸载旧包。组件 ID 与配置命名空间统一为 `dsh-sub2api-monitor`，连接配置仅由 DSH profile 管理。升级 0.1.0 时须同步将 profile 中旧组件 ID 改为新 ID，并保留其 config 字段；不能只换包而丢弃配置。
 
 - `baseUrl`：站点 API 地址，包含 `/api/v1`。
 - `adminApiKey`：管理员 API 密钥，使用 DSH secret 类型输入框。
