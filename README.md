@@ -1,6 +1,6 @@
 # sub2api 账号用量监控
 
-DSH desktop 插件 `myspace-sub2api-monitor`，兼容 DSH `0.2.0-rc.2`。左侧「账号用量」打开完整面板，会话标题右侧摘要可直接展开浮层。不改 DSH 核心，不启动额外进程或 HTTP 服务。
+DSH desktop 插件 `myspace-sub2api-monitor`，兼容 DSH `0.2.0-rc.2`。左下角设置／账号区旁的用量图标向上展开紧凑浮层，侧边栏上部不再放入口；会话标题栏摘要继续保留。不改 DSH 核心，不启动额外进程或 HTTP 服务。
 
 ## 数据与刷新
 

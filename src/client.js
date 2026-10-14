@@ -43,28 +43,29 @@ window.__ModuleLoader__.load({ id: 'myspace-sub2api-monitor', factory: require =
         h('div', { className: 's2m-stats' }, ...[['今日请求', a.stats?.requests], ['今日 Token', a.stats?.tokens], ['今日费用', a.stats?.cost]].map(([label, v]) => h('div', { key: label, title: num(v) }, label, h('b', null, label === '今日费用' ? (v == null ? '—' : `$${num(v)}`) : compact(v))))),
         a.statsError ? h('p', { className: 'warn' }, '今日统计获取失败') : null);
     }
-    function Panel({ popup = false, close }) {
+    function Panel({ popup = false, footer = false, close }) {
       const d = useData(), [busy, setBusy] = React.useState(false);
       const available = a => a.status === 'active' && a.schedulable === true;
       const accounts = [...d.accounts].sort((a, b) => Number(available(b)) - Number(available(a)));
-      return h('section', { className: `s2m ${popup ? 's2m-dialog' : 's2m-page'}`, role: popup ? 'dialog' : undefined, 'aria-label': '账号用量' },
+      return h('section', { className: `s2m ${popup ? 's2m-dialog' : 's2m-page'}${footer ? ' s2m-footer-dialog' : ''}`, role: popup ? 'dialog' : undefined, 'aria-label': '账号用量' },
         h('div', { className: 's2m-toolbar' }, h('h2', null, '账号用量'), h('span', { className: `s2m-fresh ${d.stale ? 'stale' : ''}`, title: `${d.stale ? '数据过期' : '已同步'} · ${time(d.updatedAt)}`, 'aria-label': d.stale ? '数据过期' : '已同步' }), h('button', { disabled: busy || d.refreshing, onClick: async () => { setBusy(true); await load(true); setBusy(false); } }, busy || d.refreshing ? '刷新中…' : '刷新'), popup ? h('button', { onClick: close, 'aria-label': '关闭账号用量' }, '关闭') : null),
         d.error ? h('p', { role: 'alert', className: 'danger' }, d.error) : null,
         h('div', { className: 's2m-grid' }, ...accounts.map(a => h(Card, { key: a.id, a }))),
         !accounts.length ? h('p', null, d.updatedAt ? '没有匹配的账号' : '等待首次采集；请确认本机配置已填写。') : null);
     }
-    function Summary() {
+    function Summary({ footer = false } = {}) {
       const d = useData(), [open, setOpen] = React.useState(false);
       const alerts = d.accounts.filter(a => a.usageError || a.status !== 'active' || !a.schedulable || a.windows?.some(w => w.utilization >= 80)).length;
       React.useEffect(() => { if (!open) return; const key = e => { if (e.key === 'Escape') setOpen(false); }; document.addEventListener('keydown', key); return () => document.removeEventListener('keydown', key); }, [open]);
-      return h('div', { className: 's2m' }, h('button', { className: `s2m-mini ${d.stale || alerts ? 'warn' : ''}`, onClick: () => setOpen(!open), 'aria-expanded': open }, `用量 ${d.accounts.length} · ${d.stale ? '离线/过期' : alerts ? `${alerts} 待关注` : '正常'}`), open ? h(Panel, { popup: true, close: () => setOpen(false) }) : null);
+      const label = `用量 ${d.accounts.length} · ${d.stale ? '离线/过期' : alerts ? `${alerts} 待关注` : '正常'}`;
+      return h('div', { className: 's2m' }, h('button', { className: `s2m-mini ${footer ? 's2m-footer-button' : ''} ${d.stale || alerts ? 'warn' : ''}`, title: label, 'aria-label': footer ? `账号${label}` : label, onClick: () => setOpen(!open), 'aria-expanded': open }, footer ? h('svg', { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.8, 'aria-hidden': true }, h('path', { d: 'M4 19V9m8 10V4m8 15v-7M2 21h20' })) : label), open ? h(Panel, { popup: true, footer, close: () => setOpen(false) }) : null);
     }
     ctx.effect(() => {
-      const style = document.createElement('style'); style.dataset.plugin = 'myspace-sub2api-monitor'; style.textContent = css + polish + '.s2m-meta{flex-wrap:wrap}.s2m-plan{padding:3px 7px;border-radius:5px;font-size:11px;font-weight:600;color:var(--dsw-alias-brand-primary);background:var(--dsw-alias-bg-layer-2);white-space:nowrap}' + popupCss; document.head.appendChild(style);
+      const style = document.createElement('style'); style.dataset.plugin = 'myspace-sub2api-monitor'; style.textContent = css + polish + '.s2m-meta{flex-wrap:wrap}.s2m-plan{padding:3px 7px;border-radius:5px;font-size:11px;font-weight:600;color:var(--dsw-alias-brand-primary);background:var(--dsw-alias-bg-layer-2);white-space:nowrap}' + popupCss + '.s2m.s2m-footer-dialog{left:16px;right:auto;top:auto;bottom:68px;max-height:min(680px,calc(100dvh - 90px))}.s2m .s2m-footer-button{width:32px;height:32px;display:grid;place-items:center;padding:0!important;background:transparent;border-color:transparent;border-radius:8px}.s2m .s2m-footer-button:hover{background:var(--dsw-alias-interactive-bg-hover)}'; document.head.appendChild(style);
       void load(); timer = setInterval(() => { void load(); }, 10000);
       return () => { stopped = true; clearInterval(timer); controller?.abort(); style.remove(); listeners.clear(); };
     });
-    ctx.slots.inject('sidebar.panellist', () => ctx.slots.register({ name: 'sidebar.panellist', id: ID, label: '账号用量', order: 15 }, ({ size }) => h('svg', { width: size, height: size, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.8 }, h('path', { d: 'M4 19V9m8 10V4m8 15v-7M2 21h20' }))));
+    ctx.slots.inject('sidebar.footer.action', () => ctx.slots.register({ name: 'sidebar.footer.action', id: ID, label: '账号用量', order: 15 }, () => h(Summary, { footer: true })));
     ctx.slots.inject('main', () => ctx.slots.register({ name: 'main', key: ID }, Panel));
     ctx.slots.inject('conversation.session.header.utilities', () => ctx.slots.register({ name: 'conversation.session.header.utilities', id: ID, label: '账号用量', order: -30 }, Summary));
   }

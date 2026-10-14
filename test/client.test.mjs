@@ -13,7 +13,7 @@ test('client registers additive slots and renders without secret access', async 
   vm.runInNewContext(source, sandbox);
   plugin.apply({ effect: fn => effects.push(fn()), slots: { inject: (_, fn) => fn(), register: (options, component) => { entries.push({ options, component }); return () => {}; } } });
   assert.equal(entries.length, 3);
-  assert.deepEqual(entries.map(e => e.options.name), ['sidebar.panellist', 'main', 'conversation.session.header.utilities']);
+  assert.deepEqual(entries.map(e => e.options.name), ['sidebar.footer.action', 'main', 'conversation.session.header.utilities']);
   await new Promise(resolve => setImmediate(resolve));
   const panel = entries[1].component({});
   assert.equal(panel.tag, 'section');
@@ -22,6 +22,8 @@ test('client registers additive slots and renders without secret access', async 
   assert.equal(accounts.map(a => a.id).join(','), '1,2,3,4');
   assert.equal(entries[2].component().tag, 'div');
   assert.equal(entries[2].options.order, -30);
+  assert.equal(entries[0].component().props.footer, true);
+  assert.equal(entries[1].component({ popup: true, footer: true }).props.className, 's2m s2m-dialog s2m-footer-dialog');
   assert.equal(entries[1].component({ popup: true }).props.className, 's2m s2m-dialog');
   assert.ok(style.textContent.includes('width:min(620px,calc(100vw - 32px))'));
   assert.ok(style.textContent.includes('.s2m-dialog .s2m-card{padding:13px'));
