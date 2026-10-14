@@ -1,4 +1,4 @@
-window.__ModuleLoader__.load({ id: 'myspace-sub2api-monitor', factory: require => {
+window.__ModuleLoader__.load({ id: 'sub2api-monitor', factory: require => {
   const React = require('react'), h = React.createElement;
   const ID = 'sub2api-monitor';
   const labels = { five_hour: '5 小时', seven_day: '7 天', seven_day_sonnet: 'Sonnet 7 天', seven_day_opus: 'Opus 7 天' };
@@ -69,7 +69,7 @@ window.__ModuleLoader__.load({ id: 'myspace-sub2api-monitor', factory: require =
       return h('div', { className: 's2m', ref: root }, h('button', { className: `s2m-mini ${d.stale || alerts ? 'warn' : ''}`, title: label, 'aria-label': label, onClick: () => setOpen(!open), 'aria-expanded': open }, label), open ? h(Panel, { popup: true, close: () => setOpen(false) }) : null);
     }
     ctx.effect(() => {
-      const style = document.createElement('style'); style.dataset.plugin = 'myspace-sub2api-monitor'; style.textContent = css + polish + '.s2m-meta{flex-wrap:wrap}.s2m-plan{padding:3px 7px;border-radius:5px;font-size:11px;font-weight:600;color:var(--dsw-alias-brand-primary);background:var(--dsw-alias-bg-layer-2);white-space:nowrap}' + popupCss + '.s2m.s2m-dialog{width:min(700px,calc(100vw - 32px));max-height:min(760px,calc(100dvh - 90px));padding:18px}.s2m-dialog .s2m-card{padding:16px}.s2m-dialog .s2m-card h3{font-size:14px}.s2m-dialog .s2m-meta,.s2m-dialog .s2m-window small{font-size:11px}.s2m-dialog .s2m-row{font-size:12px}.s2m-dialog .s2m-row strong{font-size:20px}.s2m-dialog .s2m-stats{font-size:10px}.s2m-dialog .s2m-stats b{font-size:15px}'; document.head.appendChild(style);
+      const style = document.createElement('style'); style.dataset.plugin = 'sub2api-monitor'; style.textContent = css + polish + '.s2m-meta{flex-wrap:wrap}.s2m-plan{padding:3px 7px;border-radius:5px;font-size:11px;font-weight:600;color:var(--dsw-alias-brand-primary);background:var(--dsw-alias-bg-layer-2);white-space:nowrap}' + popupCss + '.s2m.s2m-dialog{width:min(700px,calc(100vw - 32px));max-height:min(760px,calc(100dvh - 90px));padding:18px}.s2m-dialog .s2m-card{padding:16px}.s2m-dialog .s2m-card h3{font-size:14px}.s2m-dialog .s2m-meta,.s2m-dialog .s2m-window small{font-size:11px}.s2m-dialog .s2m-row{font-size:12px}.s2m-dialog .s2m-row strong{font-size:20px}.s2m-dialog .s2m-stats{font-size:10px}.s2m-dialog .s2m-stats b{font-size:15px}'; document.head.appendChild(style);
       void load(); timer = setInterval(() => { void load(); }, 10000);
       return () => { stopped = true; clearInterval(timer); controller?.abort(); style.remove(); listeners.clear(); };
     });

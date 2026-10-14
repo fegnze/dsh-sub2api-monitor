@@ -1,6 +1,6 @@
 # sub2api 账号用量监控
 
-DSH desktop 插件 `myspace-sub2api-monitor`，兼容 DSH `0.2.0-rc.2`。仅保留会话标题栏用量入口，不注册侧栏入口、整页或中心弹窗。标题栏浮层最大宽 700px，适配视口，兼顾双列卡片与可读性；点击外部、Esc 或关闭按钮收起，点击内部不关闭。不改 DSH 核心，不启动额外进程或 HTTP 服务。
+DSH desktop 插件 `sub2api-monitor`，兼容 DSH `0.2.0-rc.2`。仅保留会话标题栏用量入口，不注册侧栏入口、整页或中心弹窗。标题栏浮层最大宽 700px，适配视口，兼顾双列卡片与可读性；点击外部、Esc 或关闭按钮收起，点击内部不关闭。不改 DSH 核心，不启动额外进程或 HTTP 服务。
 
 ## 数据与刷新
 
@@ -15,7 +15,7 @@ Host 通过管理 API 读取分页账号列表、每账号 `/usage` 和 `/today-
 
 ## 安装与插件配置
 
-在 DSH「插件」中安装 npm 包 `myspace-sub2api-monitor`，进入插件详情中的配置表单，填写下列字段并保存。配置由 DSH profile 管理，不需要修改插件源码。
+在 DSH「插件」中安装 npm 包 `sub2api-monitor`，进入插件详情中的配置表单，填写下列字段并保存。配置由 DSH profile 管理，不需要修改插件源码。
 
 - `baseUrl`：站点 API 地址，包含 `/api/v1`。
 - `adminApiKey`：管理员 API 密钥，使用 DSH secret 类型输入框。
@@ -45,7 +45,7 @@ Host 通过管理 API 读取分页账号列表、每账号 `/usage` 和 `/today-
 
 仅依赖官方 `@deepseek-ai/schemastery` 配置 schema，无生成步骤。Client 为原生 ModuleLoader 包装的 JavaScript，直接随包分发。通过 DSH 插件管理安装 npm 包或开发目录的 link bundle。升级已安装模块后重启 DSH，检查插件详情中的中英文标题、图标、配置表单与会话摘要；不需要启动替代 Web 服务。
 
-这是社区插件，不是 DeepSeek 官方出品。包元数据、图标导出、双语 locale、原生 Config 和生命周期遵循 DSH 插件规范；原创透明 SVG 图标采用 36×36 仪表盘主题。源码与问题反馈：https://github.com/fegnze/myspace-sub2api-monitor 。
+这是社区插件，不是 DeepSeek 官方出品。包元数据、图标导出、双语 locale、原生 Config 和生命周期遵循 DSH 插件规范；原创透明 SVG 图标采用 36×36 仪表盘主题。源码与问题反馈：https://github.com/fegnze/sub2api-monitor 。
 
 ```sh
 node --test test/*.test.mjs
