@@ -6,6 +6,10 @@ on:
         description: Reviewed commit SHA
         required: true
         type: string
+      dry_run:
+        description: Validate without publishing
+        type: boolean
+        default: true
 permissions:
   contents: read
 concurrency:
@@ -29,7 +33,7 @@ jobs:
           node-version: '24'
           registry-url: 'https://registry.npmjs.org'
       - name: Install npm with trusted publishing support
-        run: npm install --global npm@11.6.2
+        run: npm install --global npm@11.11.0
       - name: Install dependencies without lifecycle scripts
         run: npm install --ignore-scripts --package-lock=false
       - name: Test
@@ -37,4 +41,5 @@ jobs:
       - name: Check package payload
         run: npm pack --dry-run
       - name: Publish with OIDC provenance
-        run: npm publish --access public --provenance
+        if: inputs.dry_run == false
+        run: npm publish --access public --provenance --ignore-scripts
