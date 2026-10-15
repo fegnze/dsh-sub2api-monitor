@@ -1,6 +1,6 @@
 # sub2api Account Usage Monitor
 
-English | [中文](<README.zh.md>)
+English | [中文](<docs/zh.md>)
 
 `dsh-sub2api-monitor` is a DSH desktop plugin compatible with DSH `0.2.0-rc.2`. It provides only a usage entry in the conversation title bar, with no sidebar entry, full page, or centered dialog. The title-bar popover has a maximum width of 700px and adapts to the viewport, balancing two-column cards with readability. Clicking outside, pressing Esc, or clicking Close dismisses it; clicking inside does not. It does not modify DSH core or start additional processes or HTTP services.
 

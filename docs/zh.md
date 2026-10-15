@@ -1,6 +1,6 @@
 # sub2api 账号用量监控
 
-[English](<README.md>) | 中文
+[English](<../README.md>) | 中文
 
 DSH desktop 插件 `dsh-sub2api-monitor`，兼容 DSH `0.2.0-rc.2`。仅保留会话标题栏用量入口，不注册侧栏入口、整页或中心弹窗。标题栏浮层最大宽 700px，适配视口，兼顾双列卡片与可读性；点击外部、Esc 或关闭按钮收起，点击内部不关闭。不改 DSH 核心，不启动额外进程或 HTTP 服务。
 
