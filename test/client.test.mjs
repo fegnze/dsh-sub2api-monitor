@@ -23,6 +23,16 @@ test('header-only popup sorts accounts and closes only on outside click or Escap
   const grid = panel.children.find(child => child?.props?.className === 's2m-grid');
   assert.equal(grid.children.map(child => child.props.a.id).join(','), '2,4,1,3');
   assert.equal(accounts.map(a => a.id).join(','), '1,2,3,4');
+  const Card = grid.children[0].tag;
+  for (const [utilization, expected] of [[30, '剩余 70%'], [87, '剩余 13%'], [110, '剩余 0%'], [null, '剩余未知']]) {
+    const card = Card({ a: { windows: [{ key: 'five_hour', utilization, resetsAt: '2099-01-01T00:00:00Z' }] } });
+    const window = card.children[3][0];
+    const details = window.children[2];
+    assert.equal(details.props.className, 's2m-row');
+    assert.equal(details.children[0].children[0], expected);
+    assert.match(details.children[1].children[0], /后重置/);
+    assert.equal(details.children[0].props.className, utilization >= 95 ? 'danger' : utilization >= 80 ? 'warn' : '');
+  }
   const configure = panel.children[0].children.find(child => child?.props?.['aria-label'] === '插件信息与配置');
    configure.props.onClick(); assert.equal(navigated, 'dsh-sub2api-monitor'); assert.equal(open, false); open = true;
    handlers.get('pointerdown')({ target: inside }); assert.equal(open, true);
