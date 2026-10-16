@@ -20,6 +20,9 @@ test('header-only popup sorts accounts and closes only on outside click or Escap
   const popup = summary.children[1];
   const panel = popup.tag(popup.props);
   assert.equal(panel.props.className, 's2m s2m-dialog');
+   assert.equal(panel.props.popover, 'manual');
+   assert.ok(source.includes('element.showPopover()'));
+   assert.ok(style.textContent.includes('left:auto;bottom:auto;opacity:1;filter:none'));
   const grid = panel.children.find(child => child?.props?.className === 's2m-grid');
   assert.equal(grid.children.map(child => child.props.a.id).join(','), '2,4,1,3');
   assert.equal(accounts.map(a => a.id).join(','), '1,2,3,4');

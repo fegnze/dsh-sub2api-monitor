@@ -15,29 +15,41 @@ Host 通过管理 API 读取分页账号列表、每账号 `/usage` 和 `/today-
 - 80%/95% 高亮提醒；会话摘要计数需关注账号。暂不发送系统通知。
 - 未知字段保持未知；局部失败单独标记，列表失败保留旧数据并显示过期。上游快照可能比采集时间旧，显示源时间（如果接口提供）。
 
+## 账号详情
+
+点击卡片（或 Enter/空格）在同一个面板内进入详情，可返回列表。仅按需请求 `/admin/accounts/:id/stats?days=30&timezone=Asia%2FShanghai`，缓存 60 秒、并发合并。只接受已采集账号 ID，禁止重定向，Host 输出字段白名单；不引入历史数据库或全量历史轮询。
+
+展示周期累计、接口统计天数与有记录日期范围、每日请求/Token/账号计费条形趋势、按 Token 排列的模型及可展开的输入/输出/缓存构成、活跃日日均、最高用量日和平均请求耗时。缺失日期不补零。仅覆盖经 sub2api 的调用，费用不是订阅账单，平均耗时不是首 Token 延迟。每日账号计费用 `actual_cost`、模型用 `account_cost`，缺失保持未知。错误可重试；退出详情取消前端请求，共享 Host 请求受超时及卸载取消保护。
+
 ## 安装与插件配置
 
-在 DSH「插件」中安装 npm 包 `dsh-sub2api-monitor`，进入插件详情中的配置表单，填写下列字段并保存。配置直接嵌在本插件信息页面，不注册宿主设置页面；也可从用量浮层顶部的「配置」按钮跳转。配置由 DSH settings 服务写入 profile，不需要修改插件源码。读取接口仅返回非敏感字段和密钥是否已设置；密钥输入留空保留原值，首次保存需输入密钥。保存使用 revision 检测并发冲突，不自动覆盖其他窗口的修改。
+在 DSH「插件」中安装 npm 包 `dsh-sub2api-monitor`，进入插件详情中的配置表单，填写下列字段并保存。配置直接嵌在本插件信息页面，不注册宿主设置页面；也可从用量浮层顶部的「配置」按钮跳转。配置由 DSH settings 服务写入 profile，不需要修改插件源码。读取接口仅返回非敏感字段、凭证引用名和密钥是否已设置；密钥输入留空保留原值，首次保存需输入密钥。保存使用 revision 检测并发冲突，不自动覆盖其他窗口的修改。
 
 旧包 `sub2api-monitor` 和更早的 `myspace-sub2api-monitor` 应停用后再启用新包，避免重复采集。参数迁入插件配置后卸载旧包。组件 ID 与配置命名空间统一为 `dsh-sub2api-monitor`，连接配置仅由 DSH profile 管理。升级 0.1.0 时须同步将 profile 中旧组件 ID 改为新 ID，并保留其 config 字段；不能只换包而丢弃配置。
 
 - `baseUrl`：站点 API 地址，包含 `/api/v1`。
-- `adminApiKey`：管理员 API 密钥，使用 DSH secret 类型输入框。
+- `adminApiKeyEnv`：管理员 API 密钥的凭证引用（环境变量风格名称），默认 `SUB2API_ADMIN_API_KEY`。profile 只保存该名称；表单中输入的密钥写入 DSH credentials 服务（本地提供方为 `$DSH_HOME/.credentials.yaml`），不写入插件配置。也可由进程环境或 `.env` 提供；继承自进程环境的值为只读，此时密钥输入框禁用。
 - `allowInsecureHttp`：默认关闭；仅在明确接受明文风险时开启。
 - `intervalSeconds`：30–3600 秒，默认 60 秒。
+- `primaryAccounts`：主账号多选列表，打开设置自动加载未过滤的 Host 账号缓存；点击「刷新账号列表」使用已保存的连接配置拉取上游，冷却 10 秒。已选但未返回的账号保留，加载失败不清空选择。内部按名称精确匹配，默认空；卡片显示主账号标记。
+- `primaryFirst`：默认开启，主账号优先于选定的次级排序。
+- `displayFilter`：全部、仅主账号、仅可用、仅需关注。需关注包含不可用账号、额度或统计获取失败、已用比例达到 80%。
+- `sortBy`：可用优先（默认）、名称、已用比例高到低、已用比例低到高。用量比较各窗口最高已知比例，未知排最后。过滤不改变上游采集范围；设置持久化到 profile，在后续缓存读取时应用。标题栏计数对应过滤后的集合；网页看板仍独立运行。
 
-本插件仅 Host 使用密钥，不把密钥注入 Client 模块或用量接口。secret 输入框负责遮挡，不代表磁盘加密；应保护 DSH profile，勿将含凭证的本机配置提交 Git。
+仅 Host 在每次请求时解析密钥，轮换后下一次刷新即生效，无需重启；密钥不进入 Client 模块、用量接口或 profile。凭证文件为仅属主可读的明文，不代表磁盘加密。
 
 ```json
 {
   "baseUrl": "https://your-sub2api.example/api/v1",
-  "adminApiKey": "替换为管理员密钥",
+  "adminApiKeyEnv": "SUB2API_ADMIN_API_KEY",
   "allowInsecureHttp": false,
   "intervalSeconds": 60
 }
 ```
 
-仅在明确接受明文传输风险后将 `allowInsecureHttp` 设为 `true`。轮换密钥时在插件配置中更新并保存，无需重装。
+仅在明确接受明文传输风险后将 `allowInsecureHttp` 设为 `true`。轮换密钥时在表单中输入新密钥，或经 DSH credentials 服务更新，无需重装。
+
+从 0.1.x 升级：已移除明文 `adminApiKey` 字段。将其值迁入 credentials 服务的 `SUB2API_ADMIN_API_KEY`（或在表单重新输入），再从 profile 的 `cordis.patch.yml` 删除 `adminApiKey`。
 
 不再读取旧独立 JSON 配置或 `SUB2API_MONITOR_CONFIG` 环境变量。迁移后删除旧配置文件，只保留插件配置一处权威。
 

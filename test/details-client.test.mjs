@@ -1,0 +1,21 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import vm from 'node:vm';
+test('detail view renders metrics, model breakdown and back action', async () => {
+  const source = await readFile(new URL('../src/client.js', import.meta.url), 'utf8');
+  let plugin, states = [], back = false; const entries = [];
+  const React = { Fragment: 'fragment', createElement: (tag, props, ...children) => ({ tag, props, children }), useState: initial => [states.length ? states.shift() : initial, () => {}], useSyncExternalStore: (_, get) => get(), useRef: () => ({current:null}), useEffect() {} };
+  vm.runInNewContext(source, { window: { __ModuleLoader__: { load: d => { plugin = d.factory(() => React); } } } });
+  plugin.apply({ effect() {}, slots: { inject: (_, fn) => fn(), register: (options, component) => entries.push({options,component}) } });
+  states = [true]; const summary = entries[1].component(); const panelElement = summary.children[1];
+  states = [false, {id:1,name:'Account'}]; const panel = panelElement.tag(panelElement.props);
+  const detailsElement = panel.children[2];
+  assert.equal(typeof detailsElement.tag, 'function');
+  states = [{summary:{days:31,total_requests:12},history:[{date:'2026-10-14',requests:6},{date:'2026-10-16',requests:12}],models:[{model:'example',requests:12,total_tokens:100,account_cost:1}],updatedAt:1000}, '', 0, 'requests'];
+  const view = detailsElement.tag({...detailsElement.props,back:()=>{back=true;}});
+  view.children[0].children[0].props.onClick(); assert.equal(back,true);
+  const text=JSON.stringify(view); assert.match(text,/每日趋势/); assert.match(text,/模型排行/); assert.match(text,/缓存读取/); assert.match(text,/31 天/);
+  assert.match(text,/2026-10-15 · 0/);
+  assert.match(text,/M56,103 L326,178 L596,28/);
+});
